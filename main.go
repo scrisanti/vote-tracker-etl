@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"flag"
 	"net/http"
 	"encoding/xml"
 	"reflect"
@@ -48,8 +49,26 @@ type rollCallVote struct {
 // ------------------------------------------ //
 
 func main() {
+	fmt.Printf(" ------------ Congress Vote Summarizer ------------ \n")
+	fmt.Printf(" WARNING: Only works for Senate Votes!\n")
+	// --------- Command Line Args ------ //
+	congress	:= flag.Int("congress", 119, "Congress Number (119th Congress started Jan 2025)")
+	session 	:= flag.Int("session", 1, "Congress Session Number (either 1 or 2)")
+	billNum		:= flag.Int("bill", 124, "Bill Number")
+
+	// Subcommand must be first Command
+	if *session > 2 {
+		fmt.Println("The session run argument can only be '1' or '2'.")
+		os.Exit(1)
+	}
+
+	billStr := fmt.Sprintf("%05d", *billNum)
+	// -------------------------------------- //
+
+
 	apiKey := getAPIkey()
-	congressAPIURL := "https://www.senate.gov/legislative/LIS/roll_call_votes/vote1191/vote_119_1_00124.xml" // "https://api.congress.gov/v3/bill"
+	congressAPIURL := fmt.Sprintf("https://www.senate.gov/legislative/LIS/roll_call_votes/vote%d%d/vote_%d_%d_%s.xml", *congress, *session, *congress, *session, billStr) // "https://api.congress.gov/v3/bill"
+	fmt.Println(congressAPIURL)
 	body, err := clientConnect(congressAPIURL, apiKey)
 	if err != nil {
 		fmt.Printf("GET request failure: %s", err)
